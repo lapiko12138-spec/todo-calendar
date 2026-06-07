@@ -4,1483 +4,956 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>智能记账本</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%233f7d55'/%3E%3Cpath d='M20 24h24M20 32h24M20 40h16' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232d7a4f'/%3E%3Cpath d='M18 22h28M18 32h28M18 42h18' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     * { margin: 0; padding: 0; }
 
     :root {
-      --bg: #f4f6f4;
+      --bg: #eef2ef;
       --panel: #ffffff;
-      --surface: #f8faf8;
-      --surface-strong: #eef4ef;
-      --line: #dde5df;
-      --line-strong: #c9d7cd;
-      --text: #1f2a24;
-      --sub: #66756b;
-      --muted: #9aa6a0;
-      --green: #3f7d55;
-      --green-strong: #2f6844;
-      --red: #d86767;
-      --red-strong: #ba4d4d;
-      --amber: #b98725;
-      --blue: #427da8;
-      --violet: #6f63b6;
-      --shadow: 0 12px 30px rgba(28, 45, 34, 0.08);
-      --radius: 8px;
+      --surface: #f5f9f6;
+      --surface-hover: #ebf4ee;
+      --line: #d6e4da;
+      --line-strong: #b8ccbe;
+      --text: #18251e;
+      --sub: #52665a;
+      --muted: #8a9e94;
+      --green: #2d7a4f;
+      --green2: #3a9462;
+      --green3: #1e5c39;
+      --red: #c85050;
+      --red2: #a83838;
+      --amber: #a87020;
+      --blue: #2e6898;
+      --violet: #5a4fa0;
+      --r: 14px;
+      --r-sm: 9px;
+      --sh: 0 2px 12px rgba(15,35,22,.07);
+      --sh2: 0 6px 24px rgba(15,35,22,.11);
+      --sh3: 0 12px 40px rgba(15,35,22,.16);
     }
 
     body {
       min-height: 100vh;
       background: var(--bg);
+      background-image:
+        radial-gradient(ellipse 70% 50% at 15% -5%, rgba(45,122,79,.09) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 85% 105%, rgba(46,104,152,.07) 0%, transparent 55%);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
       font-size: 14px;
-      line-height: 1.5;
+      line-height: 1.6;
       padding: 22px;
     }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
 
-    button, input, select {
-      font: inherit;
-    }
+    /* ── App shell ── */
+    .app { width: min(1380px, 100%); margin: 0 auto; }
 
-    button {
-      cursor: pointer;
-    }
-
-    .app {
-      width: min(1320px, 100%);
-      margin: 0 auto;
-    }
-
+    /* ── Top bar ── */
     .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 14px; margin-bottom: 22px;
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: var(--r); padding: 14px 20px;
+      box-shadow: var(--sh);
     }
-
-    .brand h1 {
-      font-size: 1.45rem;
-      font-weight: 760;
-      letter-spacing: 0;
+    .brand { display: flex; align-items: center; gap: 13px; }
+    .brand-mark {
+      width: 42px; height: 42px; flex-shrink: 0; border-radius: 12px;
+      background: linear-gradient(145deg, #2d7a4f, #3aaa6a);
+      box-shadow: 0 4px 14px rgba(45,122,79,.32);
+      display: flex; align-items: center; justify-content: center;
     }
-
-    .brand p {
-      color: var(--sub);
-      font-size: 0.84rem;
-      margin-top: 2px;
-    }
-
+    .brand-mark svg { width: 22px; height: 22px; }
+    .brand h1 { font-size: 1.25rem; font-weight: 790; letter-spacing: -.02em; }
+    .brand p { color: var(--sub); font-size: .78rem; margin-top: 1px; }
     .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      display: flex; align-items: center; gap: 9px;
+      flex-wrap: wrap; justify-content: flex-end;
     }
-
     .month-nav {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 6px 10px;
-      box-shadow: 0 3px 12px rgba(30, 54, 38, 0.05);
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 999px; padding: 4px 8px;
     }
-
-    .month-nav button,
-    .icon-btn {
-      width: 34px;
-      height: 34px;
-      border: 1px solid transparent;
-      border-radius: 999px;
-      background: transparent;
-      color: var(--sub);
-      font-size: 1.2rem;
-      line-height: 1;
+    .month-nav button {
+      width: 30px; height: 30px; border: none; background: transparent;
+      color: var(--sub); font-size: 1.1rem; border-radius: 50%;
+      transition: background .15s, color .15s;
     }
-
-    .month-nav button:hover,
-    .icon-btn:hover {
-      background: var(--surface-strong);
-      color: var(--green-strong);
-    }
-
+    .month-nav button:hover { background: var(--surface-hover); color: var(--green3); }
     .month-label {
-      min-width: 116px;
-      text-align: center;
-      font-weight: 700;
-      color: var(--text);
+      min-width: 102px; text-align: center;
+      font-weight: 730; font-size: .86rem;
     }
-
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--line);
-      background: var(--panel);
-      color: var(--text);
-      border-radius: var(--radius);
-      padding: 8px 12px;
-      font-weight: 680;
-      font-size: 0.84rem;
-      text-decoration: none;
-      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+      border: 1px solid var(--line); background: var(--panel); color: var(--sub);
+      border-radius: var(--r-sm); padding: 7px 11px;
+      font-weight: 670; font-size: .8rem;
+      text-decoration: none; white-space: nowrap;
+      transition: background .14s, border-color .14s, color .14s, box-shadow .14s;
     }
-
-    .btn:hover {
-      background: var(--surface-strong);
-      border-color: var(--line-strong);
-    }
-
+    .btn:hover { background: var(--surface-hover); border-color: var(--line-strong); color: var(--text); }
     .btn.primary {
-      background: var(--green);
-      border-color: var(--green);
-      color: white;
+      background: linear-gradient(140deg, #2d7a4f 0%, #3aaa6a 100%);
+      border-color: #2d7a4f; color: #fff;
+      box-shadow: 0 3px 10px rgba(45,122,79,.28);
     }
-
     .btn.primary:hover {
-      background: var(--green-strong);
+      background: linear-gradient(140deg, #1e5c39 0%, #2d7a4f 100%);
+      box-shadow: 0 4px 14px rgba(45,122,79,.38);
     }
+    .btn.danger { color: var(--red2); border-color: #e0aeae; }
+    .btn.danger:hover { background: #fff2f2; border-color: var(--red); }
 
-    .btn.danger {
-      color: var(--red-strong);
-      border-color: #e9b8b8;
+    /* ── Storage badge ── */
+    .sbadge {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: .71rem; font-weight: 660; padding: 3px 9px;
+      border-radius: 999px; letter-spacing: .01em;
     }
+    .sbadge.server { background: rgba(45,122,79,.1); color: var(--green3); border: 1px solid rgba(45,122,79,.22); }
+    .sbadge.local  { background: rgba(168,112,32,.1); color: var(--amber);  border: 1px solid rgba(168,112,32,.22); }
+    .sdot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-    .btn.danger:hover {
-      background: #fff0f0;
-    }
-
+    /* ── KPI grid ── */
     .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-      margin-bottom: 14px;
+      display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 14px; margin-bottom: 20px;
     }
-
     .kpi {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 15px 16px;
-      box-shadow: var(--shadow);
-      min-height: 106px;
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: var(--r); padding: 18px 18px 14px;
+      box-shadow: var(--sh); min-height: 108px;
+      position: relative; overflow: hidden;
+      transition: transform .2s, box-shadow .2s;
     }
-
-    .kpi .label {
-      color: var(--sub);
-      font-size: 0.78rem;
-      margin-bottom: 7px;
+    .kpi:hover { transform: translateY(-2px); box-shadow: var(--sh2); }
+    .kpi::after {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      border-radius: var(--r) var(--r) 0 0;
     }
-
-    .kpi .value {
-      font-size: clamp(1.25rem, 2.2vw, 1.9rem);
-      font-weight: 820;
-      line-height: 1.12;
-      word-break: break-word;
+    .kpi:nth-child(1)::after { background: linear-gradient(90deg, #2d7a4f, #5ec47e); }
+    .kpi:nth-child(2)::after { background: linear-gradient(90deg, #2e6898, #60a0d8); }
+    .kpi:nth-child(3)::after { background: linear-gradient(90deg, #a87020, #e0aa44); }
+    .kpi:nth-child(4)::after { background: linear-gradient(90deg, #5a4fa0, #9a8ed8); }
+    .kpi-ico {
+      position: absolute; top: 14px; right: 14px;
+      width: 34px; height: 34px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
     }
+    .kpi:nth-child(1) .kpi-ico { background: rgba(45,122,79,.1); }
+    .kpi:nth-child(2) .kpi-ico { background: rgba(46,104,152,.1); }
+    .kpi:nth-child(3) .kpi-ico { background: rgba(168,112,32,.1); }
+    .kpi:nth-child(4) .kpi-ico { background: rgba(90,79,160,.1); }
+    .kpi .lbl { color: var(--sub); font-size: .73rem; font-weight: 650; letter-spacing: .03em; text-transform: uppercase; margin-bottom: 7px; }
+    .kpi .val { font-size: clamp(1.15rem, 2vw, 1.65rem); font-weight: 830; line-height: 1.1; letter-spacing: -.02em; word-break: break-word; }
+    .kpi .hint { color: var(--muted); font-size: .73rem; margin-top: 7px; }
+    .pos { color: var(--green); }
+    .neg { color: var(--red2); }
+    .neu { color: var(--text); }
+    .blu { color: var(--blue); }
+    .amb { color: var(--amber); }
 
-    .kpi .hint {
-      color: var(--muted);
-      font-size: 0.76rem;
-      margin-top: 7px;
-    }
-
-    .positive { color: var(--green); }
-    .negative { color: var(--red-strong); }
-    .neutral { color: var(--text); }
-    .blue { color: var(--blue); }
-    .amber { color: var(--amber); }
-
+    /* ── Main 3-col grid ── */
     .grid {
       display: grid;
-      grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.2fr) minmax(320px, 0.9fr);
-      gap: 14px;
-      align-items: start;
+      grid-template-columns: minmax(290px,.82fr) minmax(0,1.36fr) minmax(290px,.82fr);
+      gap: 16px; align-items: start;
     }
-
     .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      min-width: 0;
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: var(--r); box-shadow: var(--sh);
+      padding: 20px; min-width: 0;
+      transition: box-shadow .2s;
     }
-
-    .panel-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 14px;
+    .panel:hover { box-shadow: var(--sh2); }
+    .panel-hd {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; margin-bottom: 16px;
     }
-
-    .panel-title h2 {
-      font-size: 1rem;
-      font-weight: 760;
+    .panel-hd h2 { font-size: .94rem; font-weight: 760; letter-spacing: -.01em; }
+    .panel-hd small {
+      color: var(--muted); font-size: .72rem;
+      background: var(--surface); border: 1px solid var(--line);
+      border-radius: 999px; padding: 2px 8px; white-space: nowrap;
     }
+    .stack { display: flex; flex-direction: column; gap: 16px; }
 
-    .panel-title small {
-      color: var(--muted);
-      font-size: 0.75rem;
-    }
-
-    .stack {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .field.full {
-      grid-column: 1 / -1;
-    }
-
+    /* ── Form ── */
+    .fg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .f-full { grid-column: 1 / -1; }
     .field label {
-      display: block;
-      color: var(--sub);
-      font-weight: 650;
-      font-size: 0.76rem;
+      display: block; color: var(--sub); font-weight: 650;
+      font-size: .72rem; letter-spacing: .03em; text-transform: uppercase;
       margin-bottom: 5px;
     }
-
     input, select {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--surface);
-      color: var(--text);
-      outline: none;
-      padding: 9px 10px;
-      transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+      width: 100%; border: 1.5px solid var(--line); border-radius: var(--r-sm);
+      background: var(--surface); color: var(--text);
+      outline: none; padding: 9px 11px;
+      transition: border-color .15s, box-shadow .15s, background .15s;
     }
-
     input:focus, select:focus {
-      border-color: var(--green);
-      background: white;
-      box-shadow: 0 0 0 3px rgba(63, 125, 85, 0.12);
+      border-color: var(--green); background: #fff;
+      box-shadow: 0 0 0 3px rgba(45,122,79,.12);
     }
-
-    .type-switch {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
+    .type-sw {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 14px;
     }
-
-    .type-switch button {
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--sub);
-      border-radius: var(--radius);
-      padding: 9px 10px;
-      font-weight: 760;
+    .type-sw button {
+      border: 1.5px solid var(--line); background: var(--surface);
+      color: var(--sub); border-radius: var(--r-sm);
+      padding: 9px; font-weight: 730; font-size: .86rem;
+      transition: all .15s;
     }
-
-    .type-switch button.active[data-type="expense"] {
-      background: #fff2f2;
-      border-color: #efb5b5;
-      color: var(--red-strong);
+    .type-sw button.active[data-type="expense"] {
+      background: #fff2f2; border-color: #e5aaaa; color: var(--red2);
+      box-shadow: 0 2px 8px rgba(200,80,80,.12);
     }
-
-    .type-switch button.active[data-type="income"] {
-      background: #edf7ef;
-      border-color: #b8d9c1;
-      color: var(--green-strong);
+    .type-sw button.active[data-type="income"] {
+      background: #edf8f1; border-color: #96ccaa; color: var(--green3);
+      box-shadow: 0 2px 8px rgba(45,122,79,.12);
     }
-
     .form-actions {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      margin-top: 12px;
-      flex-wrap: wrap;
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 14px; flex-wrap: wrap;
     }
-
     .hint-line {
-      color: var(--muted);
-      font-size: 0.76rem;
-      margin-top: 10px;
+      color: var(--muted); font-size: .72rem; margin-top: 10px;
+      display: flex; align-items: center; gap: 5px;
     }
 
-    .budget-row,
-    .asset-row,
-    .record-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: center;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: var(--surface);
-      padding: 10px;
+    /* ── Row items ── */
+    .budget-row, .asset-row, .record-row {
+      display: grid; grid-template-columns: minmax(0,1fr) auto;
+      gap: 10px; align-items: center;
+      border: 1px solid var(--line); border-radius: var(--r-sm);
+      background: var(--surface); padding: 10px 12px;
+      transition: background .14s, border-color .14s;
     }
-
+    .budget-row:hover, .asset-row:hover, .record-row:hover {
+      background: #fff; border-color: var(--line-strong);
+    }
     .budget-row + .budget-row,
-    .asset-row + .asset-row,
-    .record-row + .record-row {
-      margin-top: 8px;
+    .asset-row  + .asset-row,
+    .record-row + .record-row { margin-top: 8px; }
+    .row-main { min-width: 0; }
+    .row-ttl {
+      display: flex; align-items: center; gap: 7px;
+      font-weight: 700; font-size: .86rem; min-width: 0;
     }
+    .row-ttl span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .row-meta { color: var(--muted); font-size: .72rem; margin-top: 2px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
 
-    .row-main {
-      min-width: 0;
+    /* ── Progress bar ── */
+    .prog {
+      height: 6px; border-radius: 999px;
+      background: var(--line); overflow: hidden; margin-top: 8px;
     }
-
-    .row-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 720;
-      min-width: 0;
-    }
-
-    .row-title span:last-child {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .row-meta {
-      color: var(--muted);
-      font-size: 0.76rem;
-      margin-top: 2px;
-    }
-
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      flex: 0 0 auto;
-    }
-
-    .progress {
-      height: 7px;
-      border-radius: 999px;
-      background: #e6ece8;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-
-    .progress i {
-      display: block;
-      height: 100%;
-      width: 0;
-      border-radius: 999px;
+    .prog i {
+      display: block; height: 100%; width: 0; border-radius: 999px;
       background: var(--green);
-      transition: width 0.2s;
+      transition: width .45s cubic-bezier(.4,0,.2,1);
     }
+    .prog.warn   i { background: var(--amber); }
+    .prog.danger i { background: var(--red); }
 
-    .progress.warn i {
-      background: var(--amber);
-    }
-
-    .progress.danger i {
-      background: var(--red);
-    }
-
-    .chart-card {
-      min-height: 288px;
-    }
-
-    .chart-wrap {
-      position: relative;
-      min-height: 240px;
-    }
-
-    .chart-wrap.compact {
-      min-height: 220px;
-    }
-
-    canvas {
-      width: 100% !important;
-      max-height: 260px;
-    }
-
+    /* ── Charts ── */
+    .chart-card { min-height: 290px; }
+    .chart-wrap { position: relative; min-height: 240px; }
+    .chart-wrap.compact { min-height: 220px; }
+    canvas { width: 100% !important; max-height: 260px; }
     .chart-empty {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      min-height: 220px;
-      color: var(--muted);
-      text-align: center;
-      border: 1px dashed var(--line);
-      border-radius: var(--radius);
-      background: var(--surface);
-      padding: 16px;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+      min-height: 220px; color: var(--muted); text-align: center;
+      border: 1.5px dashed var(--line); border-radius: var(--r-sm);
+      background: var(--surface); padding: 20px; font-size: .82rem;
     }
+    .chart-empty-ico { font-size: 2rem; opacity: .35; }
 
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .tabs button {
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--sub);
-      border-radius: 999px;
-      padding: 7px 11px;
-      font-weight: 680;
-      font-size: 0.8rem;
-    }
-
-    .tabs button.active {
-      background: var(--green);
-      border-color: var(--green);
-      color: white;
-    }
-
+    /* ── Filters ── */
     .filters {
-      display: grid;
-      grid-template-columns: 140px minmax(0, 1fr);
-      gap: 10px;
-      margin-bottom: 12px;
+      display: grid; grid-template-columns: 138px minmax(0,1fr);
+      gap: 10px; margin-bottom: 14px;
+    }
+    .records { max-height: 400px; overflow: auto; padding-right: 2px; }
+    .record-row { grid-template-columns: minmax(0,1fr) auto auto; }
+    .amount { font-weight: 800; white-space: nowrap; font-size: .88rem; }
+    .inline-ac { display: flex; gap: 4px; align-items: center; }
+    .txt-btn {
+      border: none; background: transparent; color: var(--muted);
+      font-weight: 700; font-size: .73rem; padding: 4px 6px;
+      border-radius: 6px; transition: all .14s;
+    }
+    .txt-btn:hover { color: var(--green3); background: var(--surface-hover); }
+    .txt-btn.danger:hover { color: var(--red2); background: #fff2f2; }
+
+    /* ── Category badge ── */
+    .cat-tag {
+      display: inline-flex; align-items: center;
+      background: var(--surface-hover); border: 1px solid var(--line);
+      border-radius: 999px; padding: 1px 8px;
+      font-size: .71rem; font-weight: 660; color: var(--sub); white-space: nowrap;
     }
 
-    .records {
-      max-height: 390px;
-      overflow: auto;
-      padding-right: 2px;
-    }
-
-    .record-row {
-      grid-template-columns: minmax(0, 1fr) auto auto;
-    }
-
-    .amount {
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .inline-actions {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-    }
-
-    .text-btn {
-      border: none;
-      background: transparent;
-      color: var(--sub);
-      font-weight: 720;
-      padding: 5px 4px;
-      border-radius: 6px;
-    }
-
-    .text-btn:hover {
-      color: var(--green-strong);
-      background: var(--surface-strong);
-    }
-
-    .text-btn.danger:hover {
-      color: var(--red-strong);
-      background: #fff0f0;
-    }
-
-    .insight-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
+    /* ── Insights ── */
+    .insight-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .insight-list li {
       border-left: 3px solid var(--green);
-      background: var(--surface);
-      border-radius: 6px;
-      padding: 9px 10px;
-      color: #3d4a42;
-      font-size: 0.84rem;
+      background: linear-gradient(90deg, rgba(45,122,79,.05), transparent);
+      border-radius: 0 8px 8px 0;
+      padding: 9px 12px; color: #334038;
+      font-size: .82rem; line-height: 1.55;
     }
 
-    .asset-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
+    /* ── Asset grid ── */
+    .asset-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
     .asset-card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      padding: 12px;
+      border: 1px solid var(--line); border-radius: var(--r-sm); padding: 14px;
+      transition: box-shadow .15s;
     }
+    .asset-card:hover { box-shadow: var(--sh); }
+    .asset-card .at { color: var(--sub); font-size: .72rem; font-weight: 660; letter-spacing: .03em; text-transform: uppercase; margin-bottom: 5px; }
+    .asset-card .av { font-size: 1.06rem; font-weight: 830; letter-spacing: -.02em; }
+    .asset-list { max-height: 104px; overflow: auto; margin-top: 8px; }
+    .asset-row { grid-template-columns: minmax(0,1fr) auto; background: #fff; padding: 7px 9px; font-size: .79rem; }
 
-    .asset-card .asset-type {
-      color: var(--sub);
-      font-size: 0.76rem;
-      margin-bottom: 5px;
-    }
-
-    .asset-card .asset-total {
-      font-size: 1.08rem;
-      font-weight: 820;
-    }
-
-    .asset-list {
-      max-height: 104px;
-      overflow: auto;
-      margin-top: 8px;
-    }
-
-    .asset-row {
-      grid-template-columns: minmax(0, 1fr) auto;
-      background: white;
-      padding: 7px 8px;
-      font-size: 0.8rem;
-    }
-
+    /* ── Empty state ── */
     .empty {
-      color: var(--muted);
-      background: var(--surface);
-      border: 1px dashed var(--line);
-      border-radius: var(--radius);
-      padding: 18px;
-      text-align: center;
-      font-size: 0.84rem;
+      color: var(--muted); background: var(--surface);
+      border: 1.5px dashed var(--line); border-radius: var(--r-sm);
+      padding: 20px; text-align: center; font-size: .82rem;
     }
+    .hidden-file { display: none; }
 
-    .hidden-file {
-      display: none;
-    }
-
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #d3ddd6; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb { background: #c2d4c8; border-radius: 999px; }
 
-    @media (max-width: 1120px) {
-      .grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      .grid > .wide {
-        grid-column: 1 / -1;
-      }
-      .kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+    /* ── Responsive ── */
+    @media (max-width: 1140px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .grid > .wide { grid-column: 1 / -1; }
+      .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
-
     @media (max-width: 760px) {
-      body {
-        padding: 14px;
-      }
-      .topbar {
-        align-items: stretch;
-        flex-direction: column;
-      }
-      .toolbar {
-        justify-content: flex-start;
-      }
-      .grid,
-      .kpi-grid,
-      .form-grid,
-      .asset-grid,
-      .filters {
-        grid-template-columns: 1fr;
-      }
-      .panel {
-        padding: 15px;
-      }
-      .record-row {
-        grid-template-columns: minmax(0, 1fr);
-      }
-      .amount,
-      .inline-actions {
-        justify-self: start;
-      }
-      .month-nav {
-        width: 100%;
-        justify-content: space-between;
-      }
-      .month-label {
-        flex: 1;
-      }
+      body { padding: 13px; }
+      .topbar { flex-direction: column; align-items: stretch; }
+      .toolbar { justify-content: flex-start; }
+      .grid, .kpi-grid, .fg, .asset-grid, .filters { grid-template-columns: 1fr; }
+      .panel { padding: 15px; }
+      .record-row { grid-template-columns: minmax(0,1fr); }
+      .amount, .inline-ac { justify-self: start; }
+      .month-nav { width: 100%; justify-content: space-between; }
+      .month-label { flex: 1; }
     }
   </style>
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
-      <div class="brand">
+<main class="app">
+
+  <!-- ── Top bar ── -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.3" stroke-linecap="round">
+          <path d="M4 7h16M4 12h16M4 17h10"/>
+        </svg>
+      </div>
+      <div>
         <h1>智能记账本</h1>
-        <p>收支、预算、资产和趋势都在一个本地账本里</p>
+        <p>收支 · 预算 · 资产 · 趋势</p>
       </div>
-      <div class="toolbar">
-        <a class="btn" href="./index.html">首页</a>
-        <a class="btn" href="./todolist/todo-calendar.html">Todo 日历</a>
-        <div class="month-nav" aria-label="月份切换">
-          <button id="prevMonth" type="button" aria-label="上个月">‹</button>
-          <span class="month-label" id="monthLabel"></span>
-          <button id="nextMonth" type="button" aria-label="下个月">›</button>
+    </div>
+    <div class="toolbar">
+      <span id="storageBadge" class="sbadge local"><span class="sdot"></span>localStorage</span>
+      <a class="btn" href="./index.html">首页</a>
+      <a class="btn" href="./todo-calendar.html">Todo</a>
+      <div class="month-nav">
+        <button id="prevMonth" type="button" aria-label="上个月">‹</button>
+        <span class="month-label" id="monthLabel"></span>
+        <button id="nextMonth" type="button" aria-label="下个月">›</button>
+      </div>
+      <button class="btn" id="exportBtn" type="button">↓ 导出</button>
+      <button class="btn" id="importBtn" type="button">↑ 导入</button>
+      <input class="hidden-file" id="importFile" type="file" accept="application/json,.json" />
+    </div>
+  </header>
+
+  <!-- ── KPI ── -->
+  <section class="kpi-grid">
+    <article class="kpi">
+      <div class="kpi-ico">💰</div>
+      <div class="lbl">本月盈余</div>
+      <div class="val neu" id="kpiSurplus">¥0.00</div>
+      <div class="hint" id="kpiIncomeExpense">收入 ¥0 · 支出 ¥0</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-ico">📊</div>
+      <div class="lbl">储蓄率</div>
+      <div class="val blu" id="kpiSavingRate">0%</div>
+      <div class="hint" id="kpiSavingHint">建议保持在 20% 以上</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-ico">🎯</div>
+      <div class="lbl">预算剩余</div>
+      <div class="val neu" id="kpiBudget">未设置</div>
+      <div class="hint" id="kpiBudgetHint">设置月预算后显示进度</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi-ico">🏦</div>
+      <div class="lbl">资产合计</div>
+      <div class="val amb" id="kpiAssets">¥0.00</div>
+      <div class="hint" id="kpiAssetHint">理财产品与现金账户合计</div>
+    </article>
+  </section>
+
+  <!-- ── 3-col grid ── -->
+  <section class="grid">
+
+    <!-- Left: entry + budget -->
+    <div class="stack">
+      <article class="panel">
+        <div class="panel-hd">
+          <h2 id="entryTitle">快速记账</h2>
+          <small id="editState">新增模式</small>
         </div>
-        <button class="btn" id="exportBtn" type="button">导出</button>
-        <button class="btn" id="importBtn" type="button">导入</button>
-        <input class="hidden-file" id="importFile" type="file" accept="application/json,.json" />
-      </div>
-    </header>
-
-    <section class="kpi-grid" aria-label="本月关键数据">
-      <article class="kpi">
-        <div class="label">本月盈余</div>
-        <div class="value" id="kpiSurplus">¥0.00</div>
-        <div class="hint" id="kpiIncomeExpense">收入 ¥0 · 支出 ¥0</div>
-      </article>
-      <article class="kpi">
-        <div class="label">储蓄率</div>
-        <div class="value blue" id="kpiSavingRate">0%</div>
-        <div class="hint" id="kpiSavingHint">建议保持在 20% 以上</div>
-      </article>
-      <article class="kpi">
-        <div class="label">预算剩余</div>
-        <div class="value" id="kpiBudget">未设置</div>
-        <div class="hint" id="kpiBudgetHint">设置月预算后显示进度</div>
-      </article>
-      <article class="kpi">
-        <div class="label">资产记录</div>
-        <div class="value amber" id="kpiAssets">¥0.00</div>
-        <div class="hint" id="kpiAssetHint">理财产品与现金账户合计</div>
-      </article>
-    </section>
-
-    <section class="grid">
-      <div class="stack">
-        <article class="panel">
-          <div class="panel-title">
-            <h2 id="entryTitle">快速记账</h2>
-            <small id="editState">新增模式</small>
-          </div>
-          <div class="type-switch" aria-label="收支类型">
-            <button type="button" class="active" data-type="expense">支出</button>
-            <button type="button" data-type="income">收入</button>
-          </div>
-          <form id="entryForm">
-            <div class="form-grid">
-              <div class="field">
-                <label for="entryDate">日期</label>
-                <input id="entryDate" type="date" required />
-              </div>
-              <div class="field">
-                <label for="entryCat">类别</label>
-                <select id="entryCat" required></select>
-              </div>
-              <div class="field full">
-                <label for="entryAmount">金额</label>
-                <input id="entryAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
-              </div>
-              <div class="field full">
-                <label for="entryNote">备注</label>
-                <input id="entryNote" type="text" maxlength="60" placeholder="例如：午餐、房租、工资到账" />
-              </div>
-            </div>
-            <div class="form-actions">
-              <button class="btn primary" id="entrySubmit" type="submit">添加记录</button>
-              <button class="btn" id="cancelEdit" type="button" style="display:none">取消编辑</button>
-            </div>
-            <div class="hint-line">数据保存在当前浏览器，建议定期导出备份。</div>
-          </form>
-        </article>
-
-        <article class="panel">
-          <div class="panel-title">
-            <h2>预算设置</h2>
-            <small id="budgetSummary">未设置</small>
-          </div>
-          <div class="form-grid">
-            <div class="field full">
-              <label for="monthBudget">本月总预算</label>
-              <input id="monthBudget" type="number" min="0" step="0.01" placeholder="例如 5000" />
+        <div class="type-sw">
+          <button type="button" class="active" data-type="expense">支出</button>
+          <button type="button" data-type="income">收入</button>
+        </div>
+        <form id="entryForm">
+          <div class="fg">
+            <div class="field">
+              <label for="entryDate">日期</label>
+              <input id="entryDate" type="date" required />
             </div>
             <div class="field">
-              <label for="budgetCat">支出类别</label>
-              <select id="budgetCat"></select>
+              <label for="entryCat">类别</label>
+              <select id="entryCat" required></select>
             </div>
-            <div class="field">
-              <label for="budgetAmount">类别预算</label>
-              <input id="budgetAmount" type="number" min="0" step="0.01" placeholder="例如 1200" />
+            <div class="field f-full">
+              <label for="entryAmount">金额</label>
+              <input id="entryAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
+            </div>
+            <div class="field f-full">
+              <label for="entryNote">备注</label>
+              <input id="entryNote" type="text" maxlength="60" placeholder="例如：午餐、房租、工资到账" />
             </div>
           </div>
           <div class="form-actions">
-            <button class="btn primary" id="saveBudget" type="button">保存预算</button>
-            <button class="btn danger" id="clearBudget" type="button">清空本月预算</button>
+            <button class="btn primary" id="entrySubmit" type="submit">添加记录</button>
+            <button class="btn" id="cancelEdit" type="button" style="display:none">取消编辑</button>
           </div>
-          <div id="budgetList" style="margin-top:12px"></div>
-        </article>
-      </div>
+          <p class="hint-line" id="storageHint">💾 数据保存在浏览器本地，建议定期导出备份。</p>
+        </form>
+      </article>
 
-      <div class="stack wide">
-        <article class="panel chart-card">
-          <div class="panel-title">
-            <h2>支出结构</h2>
-            <small id="expenseChartMeta">本月支出分类</small>
-          </div>
-          <div class="chart-wrap compact">
-            <canvas id="expenseChart"></canvas>
-            <div class="chart-empty" id="expenseEmpty">本月还没有支出记录</div>
-          </div>
-        </article>
-
-        <article class="panel wide">
-          <div class="panel-title">
-            <h2>流水明细</h2>
-            <small id="recordCount">0 条</small>
-          </div>
-          <div class="filters">
-            <select id="recordTypeFilter" aria-label="流水类型筛选">
-              <option value="all">全部类型</option>
-              <option value="expense">只看支出</option>
-              <option value="income">只看收入</option>
-            </select>
-            <input id="recordSearch" type="search" placeholder="搜索类别、备注或日期" />
-          </div>
-          <div class="records" id="records"></div>
-        </article>
-      </div>
-
-      <div class="stack">
-        <article class="panel">
-          <div class="panel-title">
-            <h2>本月洞察</h2>
-            <small>基于当前流水</small>
-          </div>
-          <ul class="insight-list" id="insightList"></ul>
-        </article>
-
-        <article class="panel chart-card">
-          <div class="panel-title">
-            <h2>12 个月储蓄趋势</h2>
-            <small>按月累计盈余</small>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="savingsChart"></canvas>
-            <div class="chart-empty" id="savingsEmpty">记录几个月收支后会更有参考价值</div>
-          </div>
-        </article>
-      </div>
-
-      <article class="panel wide">
-        <div class="panel-title">
-          <h2>资产账户</h2>
-          <small id="assetSummary">0 个账户</small>
+      <article class="panel">
+        <div class="panel-hd">
+          <h2>预算设置</h2>
+          <small id="budgetSummary">未设置</small>
         </div>
-        <div class="asset-grid" id="assetGrid"></div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="assetType">账户类型</label>
-            <select id="assetType">
-              <option value="活钱管理">活钱管理</option>
-              <option value="稳健理财">稳健理财</option>
-              <option value="长期投资">长期投资</option>
-              <option value="风险投资">风险投资</option>
-            </select>
+        <div class="fg">
+          <div class="field f-full">
+            <label for="monthBudget">本月总预算</label>
+            <input id="monthBudget" type="number" min="0" step="0.01" placeholder="例如 5000" />
           </div>
           <div class="field">
-            <label for="assetName">账户名称</label>
-            <input id="assetName" type="text" maxlength="36" placeholder="例如：银行卡、货币基金" />
+            <label for="budgetCat">支出类别</label>
+            <select id="budgetCat"></select>
           </div>
           <div class="field">
-            <label for="assetAmount">当前金额</label>
-            <input id="assetAmount" type="number" min="0.01" step="0.01" placeholder="0.00" />
+            <label for="budgetAmount">类别预算</label>
+            <input id="budgetAmount" type="number" min="0" step="0.01" placeholder="例如 1200" />
           </div>
-          <div class="field">
-            <label>&nbsp;</label>
-            <button class="btn primary" id="addAsset" type="button" style="width:100%">添加账户</button>
+        </div>
+        <div class="form-actions">
+          <button class="btn primary" id="saveBudget" type="button">保存预算</button>
+          <button class="btn danger" id="clearBudget" type="button">清空本月</button>
+        </div>
+        <div id="budgetList" style="margin-top:14px"></div>
+      </article>
+    </div>
+
+    <!-- Center: charts + records -->
+    <div class="stack wide">
+      <article class="panel chart-card">
+        <div class="panel-hd">
+          <h2>支出结构</h2>
+          <small id="expenseChartMeta">本月支出分类</small>
+        </div>
+        <div class="chart-wrap compact">
+          <canvas id="expenseChart"></canvas>
+          <div class="chart-empty" id="expenseEmpty">
+            <div class="chart-empty-ico">📊</div>
+            <div>本月还没有支出记录</div>
           </div>
         </div>
       </article>
-    </section>
-  </main>
 
-  <script>
-    const STORAGE_KEY = 'financeApp_v5';
-    const LEGACY_KEYS = ['financeApp_v4'];
-    const DEFAULT_INC = ['工资', '兼职', '投资收益', '其他收入'];
-    const DEFAULT_EXP = ['餐饮', '购物', '交通', '娱乐', '住房', '医疗', '教育', '其他'];
-    const EXP_COLORS = ['#d86767', '#e48d75', '#dba14a', '#81a75a', '#4b9a72', '#4d8bb8', '#7369b8', '#b7679b', '#9aa6a0'];
-    const INC_COLORS = ['#3f7d55', '#62a571', '#8cc68f', '#b7d8aa', '#6d9fa6', '#4a8d75'];
-    const ASSET_TYPES = ['活钱管理', '稳健理财', '长期投资', '风险投资'];
-    const ASSET_META = {
-      '活钱管理': { color: '#3f7d55', bg: '#edf7ef' },
-      '稳健理财': { color: '#427da8', bg: '#edf5fb' },
-      '长期投资': { color: '#b98725', bg: '#fff6de' },
-      '风险投资': { color: '#ba4d4d', bg: '#fff0f0' },
-    };
-
-    const $ = (id) => document.getElementById(id);
-    const now = new Date();
-    let CY = now.getFullYear();
-    let CM = now.getMonth() + 1;
-    let st = loadState();
-    let entryType = 'expense';
-    let editing = null;
-    let expenseChart = null;
-    let savingsChart = null;
-
-    function emptyState() {
-      return {
-        incCats: [...DEFAULT_INC],
-        expCats: [...DEFAULT_EXP],
-        months: {},
-        budgets: {},
-        finances: [],
-      };
-    }
-
-    function loadState() {
-      const raw = localStorage.getItem(STORAGE_KEY) || LEGACY_KEYS.map((k) => localStorage.getItem(k)).find(Boolean);
-      if (!raw) return emptyState();
-      try {
-        const parsed = JSON.parse(raw);
-        return normalizeState(parsed.data || parsed);
-      } catch (err) {
-        return emptyState();
-      }
-    }
-
-    function normalizeState(input) {
-      const base = emptyState();
-      const next = {
-        incCats: Array.isArray(input.incCats) && input.incCats.length ? input.incCats : base.incCats,
-        expCats: Array.isArray(input.expCats) && input.expCats.length ? input.expCats : base.expCats,
-        months: {},
-        budgets: input.budgets && typeof input.budgets === 'object' ? input.budgets : {},
-        finances: Array.isArray(input.finances) ? input.finances.map(normalizeAsset).filter(Boolean) : [],
-      };
-
-      Object.entries(input.months || {}).forEach(([key, month]) => {
-        const income = Array.isArray(month.income) ? month.income.map((item) => normalizeEntry(item, 'income', key)).filter(Boolean) : [];
-        const expense = Array.isArray(month.expense) ? month.expense.map((item) => normalizeEntry(item, 'expense', key)).filter(Boolean) : [];
-        next.months[key] = { income, expense };
-      });
-
-      Object.keys(next.budgets).forEach((key) => {
-        const b = next.budgets[key] || {};
-        next.budgets[key] = {
-          monthly: Number(b.monthly) > 0 ? Number(b.monthly) : 0,
-          cats: b.cats && typeof b.cats === 'object' ? sanitizeBudgetCats(b.cats) : {},
-        };
-      });
-
-      return next;
-    }
-
-    function normalizeEntry(item, type, monthKey) {
-      const amount = Number(item.amount);
-      if (!Number.isFinite(amount) || amount <= 0) return null;
-      const fallbackDate = monthKey ? monthKey + '-01' : todayISO();
-      return {
-        id: safeId(item.id),
-        cat: String(item.cat || (type === 'income' ? DEFAULT_INC[0] : DEFAULT_EXP[0])),
-        amount,
-        note: String(item.note || '').slice(0, 60),
-        date: isISODate(item.date) ? item.date : fallbackDate,
-      };
-    }
-
-    function normalizeAsset(item) {
-      const amount = Number(item.amount);
-      if (!Number.isFinite(amount) || amount <= 0) return null;
-      const cat = ASSET_TYPES.includes(item.cat) ? item.cat : ASSET_TYPES[0];
-      return {
-        id: safeId(item.id),
-        cat,
-        name: String(item.name || '未命名账户').slice(0, 36),
-        amount,
-      };
-    }
-
-    function sanitizeBudgetCats(cats) {
-      const out = {};
-      Object.entries(cats).forEach(([cat, amount]) => {
-        const num = Number(amount);
-        if (cat && Number.isFinite(num) && num > 0) out[cat] = num;
-      });
-      return out;
-    }
-
-    function save() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(st));
-    }
-
-    function uid() {
-      return Math.random().toString(36).slice(2) + Date.now().toString(36);
-    }
-
-    function safeId(value) {
-      const id = String(value || '');
-      return /^[a-z0-9]+$/i.test(id) ? id : uid();
-    }
-
-    function monthKey(y = CY, m = CM) {
-      return `${y}-${String(m).padStart(2, '0')}`;
-    }
-
-    function todayISO() {
-      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    }
-
-    function isISODate(value) {
-      return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ''));
-    }
-
-    function currentMonth() {
-      const key = monthKey();
-      if (!st.months[key]) st.months[key] = { income: [], expense: [] };
-      return st.months[key];
-    }
-
-    function currentBudget() {
-      const key = monthKey();
-      if (!st.budgets[key]) st.budgets[key] = { monthly: 0, cats: {} };
-      if (!st.budgets[key].cats) st.budgets[key].cats = {};
-      return st.budgets[key];
-    }
-
-    function formatMoney(value, compact = false) {
-      return Number(value || 0).toLocaleString('zh-CN', {
-        style: 'currency',
-        currency: 'CNY',
-        minimumFractionDigits: compact ? 0 : 2,
-        maximumFractionDigits: compact ? 0 : 2,
-      });
-    }
-
-    function formatNumber(value) {
-      return Number(value || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    function esc(value) {
-      return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function sum(entries) {
-      return entries.reduce((total, item) => total + Number(item.amount || 0), 0);
-    }
-
-    function byCategory(entries) {
-      return entries.reduce((map, item) => {
-        map[item.cat] = (map[item.cat] || 0) + Number(item.amount || 0);
-        return map;
-      }, {});
-    }
-
-    function monthBounds() {
-      const key = monthKey();
-      const last = new Date(CY, CM, 0).getDate();
-      return { min: key + '-01', max: key + '-' + String(last).padStart(2, '0') };
-    }
-
-    function setDefaultEntryDate() {
-      const bounds = monthBounds();
-      const today = todayISO();
-      $('entryDate').min = bounds.min;
-      $('entryDate').max = bounds.max;
-      if (!editing) $('entryDate').value = today.startsWith(monthKey()) ? today : bounds.min;
-    }
-
-    function setEntryType(type) {
-      entryType = type;
-      document.querySelectorAll('.type-switch button').forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.type === type);
-      });
-      renderCategorySelects();
-    }
-
-    function renderCategorySelects() {
-      const cats = entryType === 'income' ? st.incCats : st.expCats;
-      $('entryCat').innerHTML = cats.map((cat) => `<option value="${esc(cat)}">${esc(cat)}</option>`).join('');
-      $('budgetCat').innerHTML = st.expCats.map((cat) => `<option value="${esc(cat)}">${esc(cat)}</option>`).join('');
-    }
-
-    function renderMetrics() {
-      const data = currentMonth();
-      const income = sum(data.income);
-      const expense = sum(data.expense);
-      const surplus = income - expense;
-      const savingRate = income > 0 ? (surplus / income) * 100 : 0;
-      const budget = currentBudget();
-      const assetTotal = sum(st.finances);
-
-      $('kpiSurplus').textContent = formatMoney(surplus);
-      $('kpiSurplus').className = 'value ' + (surplus >= 0 ? 'positive' : 'negative');
-      $('kpiIncomeExpense').textContent = `收入 ${formatMoney(income, true)} · 支出 ${formatMoney(expense, true)}`;
-
-      $('kpiSavingRate').textContent = income > 0 ? `${savingRate.toFixed(1)}%` : '0%';
-      $('kpiSavingRate').className = 'value ' + (savingRate >= 20 ? 'positive' : savingRate >= 0 ? 'blue' : 'negative');
-      $('kpiSavingHint').textContent = income > 0 ? (savingRate >= 20 ? '储蓄率健康，继续保持' : '低于 20%，可以优先看预算项') : '录入收入后计算储蓄率';
-
-      if (budget.monthly > 0) {
-        const remain = budget.monthly - expense;
-        $('kpiBudget').textContent = formatMoney(remain);
-        $('kpiBudget').className = 'value ' + (remain >= 0 ? 'positive' : 'negative');
-        $('kpiBudgetHint').textContent = `预算 ${formatMoney(budget.monthly, true)} · 已用 ${Math.min(100, expense / budget.monthly * 100).toFixed(0)}%`;
-      } else {
-        $('kpiBudget').textContent = '未设置';
-        $('kpiBudget').className = 'value neutral';
-        $('kpiBudgetHint').textContent = '设置月预算后显示进度';
-      }
-
-      $('kpiAssets').textContent = formatMoney(assetTotal);
-      $('kpiAssetHint').textContent = `${st.finances.length} 个账户`;
-    }
-
-    function renderBudgetPanel() {
-      const budget = currentBudget();
-      const data = currentMonth();
-      const expense = sum(data.expense);
-      const catSpend = byCategory(data.expense);
-      $('monthBudget').value = budget.monthly ? budget.monthly : '';
-      $('budgetSummary').textContent = budget.monthly ? `已用 ${formatMoney(expense, true)} / ${formatMoney(budget.monthly, true)}` : '未设置';
-
-      const rows = [];
-      if (budget.monthly > 0) rows.push(progressRow('总预算', expense, budget.monthly, '本月全部支出', null));
-      Object.entries(budget.cats || {}).forEach(([cat, amount]) => {
-        rows.push(progressRow(cat, catSpend[cat] || 0, amount, '分类预算', cat));
-      });
-
-      $('budgetList').innerHTML = rows.length ? rows.join('') : '<div class="empty">还没有预算，先设置本月总预算或分类预算。</div>';
-    }
-
-    function progressRow(title, spent, budget, meta, cat) {
-      const rate = budget > 0 ? spent / budget : 0;
-      const cls = rate >= 1 ? 'danger' : rate >= 0.8 ? 'warn' : '';
-      const encodedCat = encodeURIComponent(cat || '');
-      const del = cat ? `<button class="text-btn danger" type="button" onclick="deleteCatBudget(decodeURIComponent('${encodedCat}'))">删除</button>` : '';
-      return `
-        <div class="budget-row">
-          <div class="row-main">
-            <div class="row-title"><span>${esc(title)}</span></div>
-            <div class="row-meta">${esc(meta)} · ${formatMoney(spent, true)} / ${formatMoney(budget, true)} · ${(rate * 100).toFixed(0)}%</div>
-            <div class="progress ${cls}"><i style="width:${Math.min(100, rate * 100)}%"></i></div>
-          </div>
-          <div>${del}</div>
+      <article class="panel wide">
+        <div class="panel-hd">
+          <h2>流水明细</h2>
+          <small id="recordCount">0 条</small>
         </div>
-      `;
-    }
+        <div class="filters">
+          <select id="recordTypeFilter">
+            <option value="all">全部类型</option>
+            <option value="expense">只看支出</option>
+            <option value="income">只看收入</option>
+          </select>
+          <input id="recordSearch" type="search" placeholder="搜索类别、备注或日期" />
+        </div>
+        <div class="records" id="records"></div>
+      </article>
+    </div>
 
-    function deleteCatBudget(cat) {
-      const budget = currentBudget();
-      delete budget.cats[cat];
-      save();
-      renderAll();
-    }
+    <!-- Right: insights + trend -->
+    <div class="stack">
+      <article class="panel">
+        <div class="panel-hd">
+          <h2>本月洞察</h2>
+          <small>智能分析</small>
+        </div>
+        <ul class="insight-list" id="insightList"></ul>
+      </article>
 
-    function renderRecords() {
-      const data = currentMonth();
-      const filter = $('recordTypeFilter').value;
-      const keyword = $('recordSearch').value.trim().toLowerCase();
-      let records = [
-        ...data.expense.map((item) => ({ ...item, type: 'expense' })),
-        ...data.income.map((item) => ({ ...item, type: 'income' })),
-      ];
-      if (filter !== 'all') records = records.filter((item) => item.type === filter);
-      if (keyword) {
-        records = records.filter((item) => {
-          return [item.date, item.cat, item.note, String(item.amount)].join(' ').toLowerCase().includes(keyword);
-        });
-      }
-      records.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
-      $('recordCount').textContent = `${records.length} 条`;
-
-      if (!records.length) {
-        $('records').innerHTML = '<div class="empty">没有匹配的流水记录。</div>';
-        return;
-      }
-
-      $('records').innerHTML = records.map((item) => {
-        const isExpense = item.type === 'expense';
-        const color = isExpense ? '#d86767' : '#3f7d55';
-        const amount = (isExpense ? '-' : '+') + formatMoney(item.amount);
-        return `
-          <div class="record-row">
-            <div class="row-main">
-              <div class="row-title">
-                <span class="dot" style="background:${color}"></span>
-                <span>${esc(item.cat)}${item.note ? ' · ' + esc(item.note) : ''}</span>
-              </div>
-              <div class="row-meta">${esc(item.date)} · ${isExpense ? '支出' : '收入'}</div>
-            </div>
-            <div class="amount ${isExpense ? 'negative' : 'positive'}">${amount}</div>
-            <div class="inline-actions">
-              <button class="text-btn" type="button" onclick="startEdit('${item.type}','${item.id}')">编辑</button>
-              <button class="text-btn danger" type="button" onclick="deleteEntry('${item.type}','${item.id}')">删除</button>
-            </div>
+      <article class="panel chart-card">
+        <div class="panel-hd">
+          <h2>12 个月储蓄趋势</h2>
+          <small>按月累计盈余</small>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="savingsChart"></canvas>
+          <div class="chart-empty" id="savingsEmpty">
+            <div class="chart-empty-ico">📈</div>
+            <div>记录几个月收支后会更有参考价值</div>
           </div>
-        `;
-      }).join('');
+        </div>
+      </article>
+    </div>
+
+    <!-- Assets (full width) -->
+    <article class="panel wide">
+      <div class="panel-hd">
+        <h2>资产账户</h2>
+        <small id="assetSummary">0 个账户</small>
+      </div>
+      <div class="asset-grid" id="assetGrid"></div>
+      <div class="fg">
+        <div class="field">
+          <label for="assetType">账户类型</label>
+          <select id="assetType">
+            <option>活钱管理</option><option>稳健理财</option>
+            <option>长期投资</option><option>风险投资</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="assetName">账户名称</label>
+          <input id="assetName" type="text" maxlength="36" placeholder="例如：银行卡、货币基金" />
+        </div>
+        <div class="field">
+          <label for="assetAmount">当前金额</label>
+          <input id="assetAmount" type="number" min="0.01" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="btn primary" id="addAsset" style="width:100%">＋ 添加账户</button>
+        </div>
+      </div>
+    </article>
+
+  </section>
+</main>
+
+<script>
+  /* ─── Constants ─── */
+  const SK = 'financeApp_v5';
+  const LEGACY = ['financeApp_v4'];
+  const INC  = ['工资','兼职','投资收益','其他收入'];
+  const EXP  = ['餐饮','购物','交通','娱乐','住房','医疗','教育','其他'];
+  const ECOL = ['#c85050','#d87848','#cc9030','#74a840','#2d8a58','#2e6898','#5a4fa0','#a84888','#8a9e94'];
+  const ICOL = ['#2d7a4f','#3a9462','#60b880','#a0d0a4','#5090a0','#2a7860'];
+  const ATYPES = ['活钱管理','稳健理财','长期投资','风险投资'];
+  const AMETA  = {
+    '活钱管理':{ c:'#2d7a4f', bg:'#edf8f1' },
+    '稳健理财':{ c:'#2e6898', bg:'#edf4fb' },
+    '长期投资':{ c:'#a87020', bg:'#fff5dc' },
+    '风险投资':{ c:'#a83838', bg:'#fff0f0' },
+  };
+
+  /* ─── Storage ─── */
+  const IS_LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const API = IS_LOCAL ? `http://${location.hostname}:3457/api/finance` : null;
+  let serverOK = false;
+  let saveTimer = null;
+
+  async function pingServer() {
+    if (!API) return false;
+    try { return (await fetch(API+'/ping',{signal:AbortSignal.timeout(900)})).ok; }
+    catch { return false; }
+  }
+  async function loadFromServer() {
+    const r = await fetch(API+'/data'); if (!r.ok) throw 0;
+    return r.json();
+  }
+  async function pushToServer(d) {
+    await fetch(API+'/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+  }
+  function updateBadge() {
+    const b = $('storageBadge'), h = $('storageHint');
+    if (serverOK) {
+      b.className='sbadge server'; b.innerHTML='<span class="sdot"></span>本地服务器 · 文件持久化';
+      h.textContent='✅ 数据已同步到本地文件，重启浏览器不会丢失。';
+    } else {
+      b.className='sbadge local'; b.innerHTML='<span class="sdot"></span>localStorage';
+      h.textContent='💾 数据保存在浏览器本地，建议定期导出备份。';
     }
+  }
 
-    function renderInsights() {
-      const data = currentMonth();
-      const income = sum(data.income);
-      const expense = sum(data.expense);
-      const surplus = income - expense;
-      const budget = currentBudget();
-      const catSpend = Object.entries(byCategory(data.expense)).sort((a, b) => b[1] - a[1]);
-      const insights = [];
+  /* ─── Helpers ─── */
+  const $ = id => document.getElementById(id);
+  const now = new Date();
+  let CY=now.getFullYear(), CM=now.getMonth()+1;
+  let st, entryType='expense', editing=null, echart=null, schart=null;
 
-      if (!income && !expense) {
-        insights.push('先记录几笔收入和支出，系统会自动生成本月洞察。');
-      } else {
-        if (catSpend.length) {
-          const [topCat, topAmount] = catSpend[0];
-          insights.push(`最大支出是 ${topCat}，占本月支出 ${((topAmount / expense) * 100).toFixed(1)}%。`);
-        }
-        if (income > 0) {
-          const rate = (surplus / income) * 100;
-          insights.push(`本月储蓄率 ${rate.toFixed(1)}%，${rate >= 20 ? '处在比较健康的区间。' : '建议优先压缩弹性消费或提高收入。'}`);
-        }
-        if (budget.monthly > 0) {
-          const remain = budget.monthly - expense;
-          insights.push(remain >= 0 ? `总预算还剩 ${formatMoney(remain)}，可以继续按当前节奏消费。` : `总预算已超出 ${formatMoney(Math.abs(remain))}，建议复盘非必要支出。`);
-        } else {
-          insights.push('建议设置本月总预算，让支出进度更可控。');
-        }
-        const overCats = Object.entries(budget.cats || {}).filter(([cat, amount]) => (byCategory(data.expense)[cat] || 0) > amount);
-        if (overCats.length) insights.push(`${overCats.map(([cat]) => cat).join('、')} 已超过分类预算。`);
-        if (surplus > 0) insights.push(`盈余 ${formatMoney(surplus)} 可按应急金、稳健理财、长期投资顺序分配。`);
-        if (surplus < 0) insights.push('本月收支为负，先暂停新增风险投资，优先保证现金流。');
-      }
+  function empty() { return {incCats:[...INC],expCats:[...EXP],months:{},budgets:{},finances:[]}; }
 
-      $('insightList').innerHTML = insights.map((item) => `<li>${esc(item)}</li>`).join('');
-    }
-
-    function renderCharts() {
-      drawExpenseChart();
-      drawSavingsChart();
-    }
-
-    function drawExpenseChart() {
-      const data = currentMonth();
-      const grouped = Object.entries(byCategory(data.expense)).sort((a, b) => b[1] - a[1]);
-      const canvas = $('expenseChart');
-      const empty = $('expenseEmpty');
-      if (expenseChart) expenseChart.destroy();
-      if (!grouped.length || typeof Chart === 'undefined') {
-        canvas.style.display = 'none';
-        empty.style.display = 'flex';
-        empty.textContent = typeof Chart === 'undefined' ? '图表库加载失败，流水功能仍可正常使用。' : '本月还没有支出记录';
-        return;
-      }
-      canvas.style.display = 'block';
-      empty.style.display = 'none';
-      expenseChart = new Chart(canvas.getContext('2d'), {
-        type: 'doughnut',
-        data: {
-          labels: grouped.map(([cat]) => cat),
-          datasets: [{
-            data: grouped.map(([, amount]) => amount),
-            backgroundColor: grouped.map((_, idx) => EXP_COLORS[idx % EXP_COLORS.length]),
-            borderColor: '#fff',
-            borderWidth: 3,
-          }],
-        },
-        options: {
-          cutout: '62%',
-          plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, color: '#66756b', font: { size: 11 } } },
-            tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${formatMoney(ctx.parsed)}` } },
-          },
-          animation: { duration: 250 },
-        },
-      });
-    }
-
-    function drawSavingsChart() {
-      const months = [];
-      const labels = [];
-      for (let i = 11; i >= 0; i--) {
-        let y = CY;
-        let m = CM - i;
-        while (m < 1) { m += 12; y -= 1; }
-        while (m > 12) { m -= 12; y += 1; }
-        months.push(monthKey(y, m));
-        labels.push(`${y}-${String(m).padStart(2, '0')}`);
-      }
-
-      let running = 0;
-      Object.keys(st.months).sort().forEach((key) => {
-        if (key < months[0]) {
-          const month = st.months[key];
-          running += sum(month.income || []) - sum(month.expense || []);
-        }
-      });
-      const values = months.map((key) => {
-        const month = st.months[key];
-        if (month) running += sum(month.income || []) - sum(month.expense || []);
-        return Number(running.toFixed(2));
-      });
-
-      const hasData = values.some((value) => value !== 0);
-      const canvas = $('savingsChart');
-      const empty = $('savingsEmpty');
-      if (savingsChart) savingsChart.destroy();
-      if (!hasData || typeof Chart === 'undefined') {
-        canvas.style.display = 'none';
-        empty.style.display = 'flex';
-        empty.textContent = typeof Chart === 'undefined' ? '图表库加载失败，流水功能仍可正常使用。' : '记录几个月收支后会更有参考价值';
-        return;
-      }
-      canvas.style.display = 'block';
-      empty.style.display = 'none';
-      savingsChart = new Chart(canvas.getContext('2d'), {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [{
-            data: values,
-            borderColor: '#3f7d55',
-            backgroundColor: 'rgba(63, 125, 85, 0.1)',
-            borderWidth: 2,
-            pointRadius: 3,
-            pointBackgroundColor: '#3f7d55',
-            tension: 0.35,
-            fill: true,
-          }],
-        },
-        options: {
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: (ctx) => ` ${formatMoney(ctx.parsed.y)}` } },
-          },
-          scales: {
-            x: { ticks: { color: '#9aa6a0', font: { size: 11 }, maxRotation: 45 }, grid: { color: '#eef2ef' } },
-            y: { ticks: { color: '#9aa6a0', callback: (value) => formatMoney(value, true) }, grid: { color: '#eef2ef' } },
-          },
-          animation: { duration: 250 },
-        },
-      });
-    }
-
-    function renderAssets() {
-      const total = sum(st.finances);
-      $('assetSummary').textContent = `${st.finances.length} 个账户 · ${formatMoney(total)}`;
-      $('assetGrid').innerHTML = ASSET_TYPES.map((type) => {
-        const meta = ASSET_META[type];
-        const items = st.finances.filter((item) => item.cat === type);
-        const subtotal = sum(items);
-        const rows = items.length ? items.map((item) => `
-          <div class="asset-row">
-            <div class="row-main">
-              <div class="row-title"><span>${esc(item.name)}</span></div>
-              <div class="row-meta">${formatMoney(item.amount)}</div>
-            </div>
-            <button class="text-btn danger" type="button" onclick="deleteAsset('${item.id}')">删除</button>
-          </div>
-        `).join('') : '<div class="row-meta">暂无账户</div>';
-        return `
-          <div class="asset-card" style="background:${meta.bg}">
-            <div class="asset-type">${esc(type)}</div>
-            <div class="asset-total" style="color:${meta.color}">${formatMoney(subtotal)}</div>
-            <div class="asset-list">${rows}</div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function startEdit(type, id) {
-      const list = currentMonth()[type];
-      const item = list.find((entry) => entry.id === id);
-      if (!item) return;
-      editing = { type, id };
-      setEntryType(type);
-      $('entryDate').value = item.date;
-      $('entryCat').value = item.cat;
-      $('entryAmount').value = item.amount;
-      $('entryNote').value = item.note || '';
-      $('entrySubmit').textContent = '保存修改';
-      $('cancelEdit').style.display = 'inline-flex';
-      $('editState').textContent = '编辑模式';
-      $('entryTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function resetEntryForm() {
-      editing = null;
-      $('entryForm').reset();
-      setDefaultEntryDate();
-      setEntryType(entryType);
-      $('entrySubmit').textContent = '添加记录';
-      $('cancelEdit').style.display = 'none';
-      $('editState').textContent = '新增模式';
-    }
-
-    function deleteEntry(type, id) {
-      if (!confirm('确认删除这条流水吗？')) return;
-      const data = currentMonth();
-      data[type] = data[type].filter((entry) => entry.id !== id);
-      save();
-      if (editing && editing.id === id) resetEntryForm();
-      renderAll();
-    }
-
-    function saveEntry(event) {
-      event.preventDefault();
-      const date = $('entryDate').value;
-      const cat = $('entryCat').value;
-      const amount = Number($('entryAmount').value);
-      const note = $('entryNote').value.trim();
-      if (!isISODate(date) || !cat || !Number.isFinite(amount) || amount <= 0) {
-        alert('请填写有效的日期、类别和金额。');
-        return;
-      }
-
-      const key = date.slice(0, 7);
-      const [y, m] = key.split('-').map(Number);
-      if (!st.months[key]) st.months[key] = { income: [], expense: [] };
-
-      if (editing) {
-        const oldList = currentMonth()[editing.type];
-        const oldIndex = oldList.findIndex((entry) => entry.id === editing.id);
-        if (oldIndex >= 0) oldList.splice(oldIndex, 1);
-        st.months[key][entryType].push({ id: editing.id, cat, amount, note, date });
-      } else {
-        st.months[key][entryType].push({ id: uid(), cat, amount, note, date });
-      }
-
-      CY = y;
-      CM = m;
-      save();
-      resetEntryForm();
-      renderAll();
-    }
-
-    function saveBudget() {
-      const budget = currentBudget();
-      const monthly = Number($('monthBudget').value);
-      const cat = $('budgetCat').value;
-      const catAmount = Number($('budgetAmount').value);
-      budget.monthly = Number.isFinite(monthly) && monthly > 0 ? monthly : 0;
-      if (cat && Number.isFinite(catAmount) && catAmount > 0) budget.cats[cat] = catAmount;
-      $('budgetAmount').value = '';
-      save();
-      renderAll();
-    }
-
-    function clearBudget() {
-      if (!confirm('确认清空本月预算吗？')) return;
-      st.budgets[monthKey()] = { monthly: 0, cats: {} };
-      save();
-      renderAll();
-    }
-
-    function addAsset() {
-      const cat = $('assetType').value;
-      const name = $('assetName').value.trim();
-      const amount = Number($('assetAmount').value);
-      if (!name || !Number.isFinite(amount) || amount <= 0) {
-        alert('请填写账户名称和有效金额。');
-        return;
-      }
-      st.finances.push({ id: uid(), cat, name, amount });
-      $('assetName').value = '';
-      $('assetAmount').value = '';
-      save();
-      renderAll();
-    }
-
-    function deleteAsset(id) {
-      if (!confirm('确认删除这个资产账户吗？')) return;
-      st.finances = st.finances.filter((item) => item.id !== id);
-      save();
-      renderAll();
-    }
-
-    function exportData() {
-      const payload = {
-        version: 5,
-        exportedAt: new Date().toISOString(),
-        data: st,
+  function norm(input) {
+    const b=empty(), n={
+      incCats: Array.isArray(input.incCats)&&input.incCats.length ? input.incCats : b.incCats,
+      expCats: Array.isArray(input.expCats)&&input.expCats.length ? input.expCats : b.expCats,
+      months:{}, budgets: input.budgets&&typeof input.budgets==='object' ? input.budgets : {},
+      finances: Array.isArray(input.finances) ? input.finances.map(normAsset).filter(Boolean) : [],
+    };
+    Object.entries(input.months||{}).forEach(([k,m])=>{
+      n.months[k]={
+        income:  (m.income ||[]).map(x=>normEntry(x,'income', k)).filter(Boolean),
+        expense: (m.expense||[]).map(x=>normEntry(x,'expense',k)).filter(Boolean),
       };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `finance-tracker-${monthKey()}-backup.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function importData(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const parsed = JSON.parse(reader.result);
-          if (!confirm('导入会覆盖当前浏览器里的记账数据，确认继续吗？')) return;
-          st = normalizeState(parsed.data || parsed);
-          save();
-          resetEntryForm();
-          renderAll();
-          alert('导入完成。');
-        } catch (err) {
-          alert('文件格式不正确，请选择导出的 JSON 备份。');
-        } finally {
-          $('importFile').value = '';
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    function changeMonth(delta) {
-      CM += delta;
-      while (CM < 1) { CM += 12; CY -= 1; }
-      while (CM > 12) { CM -= 12; CY += 1; }
-      resetEntryForm();
-      renderAll();
-    }
-
-    function renderAll() {
-      $('monthLabel').textContent = `${CY} 年 ${CM} 月`;
-      setDefaultEntryDate();
-      renderCategorySelects();
-      renderMetrics();
-      renderBudgetPanel();
-      renderRecords();
-      renderInsights();
-      renderCharts();
-      renderAssets();
-      save();
-    }
-
-    document.querySelectorAll('.type-switch button').forEach((btn) => {
-      btn.addEventListener('click', () => setEntryType(btn.dataset.type));
     });
-    $('entryForm').addEventListener('submit', saveEntry);
-    $('cancelEdit').addEventListener('click', resetEntryForm);
-    $('saveBudget').addEventListener('click', saveBudget);
-    $('clearBudget').addEventListener('click', clearBudget);
-    $('addAsset').addEventListener('click', addAsset);
-    $('recordTypeFilter').addEventListener('change', renderRecords);
-    $('recordSearch').addEventListener('input', renderRecords);
-    $('prevMonth').addEventListener('click', () => changeMonth(-1));
-    $('nextMonth').addEventListener('click', () => changeMonth(1));
-    $('exportBtn').addEventListener('click', exportData);
-    $('importBtn').addEventListener('click', () => $('importFile').click());
-    $('importFile').addEventListener('change', (event) => importData(event.target.files[0]));
+    Object.keys(n.budgets).forEach(k=>{
+      const bk=n.budgets[k]||{};
+      n.budgets[k]={ monthly: +bk.monthly>0 ? +bk.monthly : 0, cats: normBCats(bk.cats||{}) };
+    });
+    return n;
+  }
+  function normEntry(x,type,mk) {
+    const a=+x.amount; if(!isFinite(a)||a<=0) return null;
+    return { id:sid(x.id), cat:String(x.cat||(type==='income'?INC[0]:EXP[0])),
+             amount:a, note:String(x.note||'').slice(0,60),
+             date: /^\d{4}-\d{2}-\d{2}$/.test(x.date+'') ? x.date : mk+'-01' };
+  }
+  function normAsset(x) {
+    const a=+x.amount; if(!isFinite(a)||a<=0) return null;
+    return { id:sid(x.id), cat:ATYPES.includes(x.cat)?x.cat:ATYPES[0],
+             name:String(x.name||'未命名').slice(0,36), amount:a };
+  }
+  function normBCats(c){const o={};Object.entries(c).forEach(([k,v])=>{const n=+v;if(k&&isFinite(n)&&n>0)o[k]=n;});return o;}
 
-    setEntryType('expense');
-    renderAll();
-  </script>
+  function loadLS() {
+    const raw=localStorage.getItem(SK)||LEGACY.map(k=>localStorage.getItem(k)).find(Boolean);
+    if(!raw) return empty();
+    try { const p=JSON.parse(raw); return norm(p.data||p); } catch { return empty(); }
+  }
+  function save() {
+    localStorage.setItem(SK,JSON.stringify(st));
+    if(serverOK){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>pushToServer(st).catch(()=>{}),400); }
+  }
+
+  function uid(){ return Math.random().toString(36).slice(2)+Date.now().toString(36); }
+  function sid(v){ const s=String(v||''); return /^[a-z0-9]+$/i.test(s)?s:uid(); }
+  function mk(y=CY,m=CM){ return `${y}-${String(m).padStart(2,'0')}`; }
+  function today(){ return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; }
+  function cMonth(){ const k=mk(); if(!st.months[k]) st.months[k]={income:[],expense:[]}; return st.months[k]; }
+  function cBudget(){ const k=mk(); if(!st.budgets[k]) st.budgets[k]={monthly:0,cats:{}}; if(!st.budgets[k].cats) st.budgets[k].cats={}; return st.budgets[k]; }
+  function fmt(v,c=false){ return (+v||0).toLocaleString('zh-CN',{style:'currency',currency:'CNY',minimumFractionDigits:c?0:2,maximumFractionDigits:c?0:2}); }
+  function esc(v){ return String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function sum(a){ return a.reduce((t,x)=>t+(+x.amount||0),0); }
+  function byCat(a){ return a.reduce((m,x)=>{ m[x.cat]=(m[x.cat]||0)+(+x.amount||0); return m; },{}); }
+
+  /* ─── Render ─── */
+  function renderMetrics() {
+    const d=cMonth(), inc=sum(d.income), exp=sum(d.expense), sur=inc-exp;
+    const sr=inc>0?(sur/inc)*100:0, bud=cBudget(), at=sum(st.finances);
+    $('kpiSurplus').textContent=fmt(sur);
+    $('kpiSurplus').className='val '+(sur>=0?'pos':'neg');
+    $('kpiIncomeExpense').textContent=`收入 ${fmt(inc,true)} · 支出 ${fmt(exp,true)}`;
+    $('kpiSavingRate').textContent=inc>0?`${sr.toFixed(1)}%`:'0%';
+    $('kpiSavingRate').className='val '+(sr>=20?'pos':sr>=0?'blu':'neg');
+    $('kpiSavingHint').textContent=inc>0?(sr>=20?'储蓄率健康，继续保持 ✓':'低于 20%，优先看预算项'):'录入收入后计算储蓄率';
+    if(bud.monthly>0){
+      const rem=bud.monthly-exp;
+      $('kpiBudget').textContent=fmt(rem); $('kpiBudget').className='val '+(rem>=0?'pos':'neg');
+      $('kpiBudgetHint').textContent=`预算 ${fmt(bud.monthly,true)} · 已用 ${Math.min(100,exp/bud.monthly*100).toFixed(0)}%`;
+    } else { $('kpiBudget').textContent='未设置'; $('kpiBudget').className='val neu'; $('kpiBudgetHint').textContent='设置月预算后显示进度'; }
+    $('kpiAssets').textContent=fmt(at); $('kpiAssetHint').textContent=`${st.finances.length} 个账户`;
+  }
+
+  function renderBudget() {
+    const bud=cBudget(), d=cMonth(), exp=sum(d.expense), cs=byCat(d.expense);
+    $('monthBudget').value=bud.monthly||'';
+    $('budgetSummary').textContent=bud.monthly?`已用 ${fmt(exp,true)} / ${fmt(bud.monthly,true)}`:'未设置';
+    const rows=[];
+    if(bud.monthly>0) rows.push(progRow('总预算',exp,bud.monthly,'本月全部支出',null));
+    Object.entries(bud.cats||{}).forEach(([c,a])=>rows.push(progRow(c,cs[c]||0,a,'分类预算',c)));
+    $('budgetList').innerHTML=rows.length?rows.join(''):'<div class="empty">还没有预算设置。</div>';
+  }
+  function progRow(title,spent,bud,meta,cat){
+    const r=bud>0?spent/bud:0, cls=r>=1?'danger':r>=.8?'warn':'';
+    const enc=encodeURIComponent(cat||'');
+    const del=cat?`<button class="txt-btn danger" onclick="delCatBudget(decodeURIComponent('${enc}'))">删除</button>`:'';
+    return `<div class="budget-row"><div class="row-main">
+      <div class="row-ttl"><span>${esc(title)}</span></div>
+      <div class="row-meta">${esc(meta)} · ${fmt(spent,true)} / ${fmt(bud,true)} · ${(r*100).toFixed(0)}%</div>
+      <div class="prog ${cls}"><i style="width:${Math.min(100,r*100)}%"></i></div>
+    </div><div>${del}</div></div>`;
+  }
+  function delCatBudget(cat){ delete cBudget().cats[cat]; save(); renderAll(); }
+
+  function renderRecords() {
+    const d=cMonth(), fl=$('recordTypeFilter').value, kw=$('recordSearch').value.trim().toLowerCase();
+    let rows=[...d.expense.map(x=>({...x,type:'expense'})),...d.income.map(x=>({...x,type:'income'}))];
+    if(fl!=='all') rows=rows.filter(x=>x.type===fl);
+    if(kw) rows=rows.filter(x=>[x.date,x.cat,x.note,String(x.amount)].join(' ').toLowerCase().includes(kw));
+    rows.sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+    $('recordCount').textContent=`${rows.length} 条`;
+    if(!rows.length){ $('records').innerHTML='<div class="empty">没有匹配的流水记录。</div>'; return; }
+    $('records').innerHTML=rows.map(x=>{
+      const ie=x.type==='expense', col=ie?'#c85050':'#2d7a4f', amt=(ie?'-':'+')+fmt(x.amount);
+      return `<div class="record-row">
+        <div class="row-main">
+          <div class="row-ttl"><span class="dot" style="background:${col}"></span>
+            <span class="cat-tag">${esc(x.cat)}</span>
+            ${x.note?`<span style="color:var(--sub);font-weight:400;font-size:.8rem">${esc(x.note)}</span>`:''}
+          </div>
+          <div class="row-meta">${esc(x.date)} · ${ie?'支出':'收入'}</div>
+        </div>
+        <div class="amount ${ie?'neg':'pos'}">${amt}</div>
+        <div class="inline-ac">
+          <button class="txt-btn" onclick="startEdit('${x.type}','${x.id}')">编辑</button>
+          <button class="txt-btn danger" onclick="delEntry('${x.type}','${x.id}')">删除</button>
+        </div></div>`;
+    }).join('');
+  }
+
+  function renderInsights() {
+    const d=cMonth(), inc=sum(d.income), exp=sum(d.expense), sur=inc-exp, bud=cBudget();
+    const cs=Object.entries(byCat(d.expense)).sort((a,b)=>b[1]-a[1]);
+    const li=[];
+    if(!inc&&!exp){ li.push('先记录几笔收入和支出，系统会自动生成本月洞察。'); }
+    else {
+      if(cs.length){ const[t,a]=cs[0]; li.push(`最大支出是「${t}」，占本月支出 ${((a/exp)*100).toFixed(1)}%。`); }
+      if(inc>0){ const r=(sur/inc)*100; li.push(`本月储蓄率 ${r.toFixed(1)}%，${r>=20?'处在健康区间 ✓':'建议压缩弹性消费或提高收入。'}`); }
+      if(bud.monthly>0){
+        const rm=bud.monthly-exp;
+        li.push(rm>=0?`总预算还剩 ${fmt(rm)}，可按当前节奏消费。`:`总预算已超出 ${fmt(Math.abs(rm))}，建议复盘非必要支出。`);
+      } else li.push('建议设置本月总预算，让支出进度更可控。');
+      const oc=Object.entries(bud.cats||{}).filter(([c,a])=>(byCat(d.expense)[c]||0)>a);
+      if(oc.length) li.push(`「${oc.map(([c])=>c).join('、')}」已超过分类预算，注意控制。`);
+      if(sur>0) li.push(`盈余 ${fmt(sur)} 可按应急金 → 稳健理财 → 长期投资顺序分配。`);
+      if(sur<0) li.push('本月收支为负，暂停新增风险投资，优先保证现金流。');
+    }
+    $('insightList').innerHTML=li.map(x=>`<li>${esc(x)}</li>`).join('');
+  }
+
+  function drawExpense() {
+    const d=cMonth(), g=Object.entries(byCat(d.expense)).sort((a,b)=>b[1]-a[1]);
+    const cv=$('expenseChart'), em=$('expenseEmpty');
+    if(echart) echart.destroy();
+    if(!g.length||typeof Chart==='undefined'){
+      cv.style.display='none'; em.style.display='flex';
+      em.querySelector('div:last-child').textContent=typeof Chart==='undefined'?'图表库加载失败':'本月还没有支出记录';
+      return;
+    }
+    cv.style.display='block'; em.style.display='none';
+    echart=new Chart(cv.getContext('2d'),{type:'doughnut',data:{
+      labels:g.map(([c])=>c),
+      datasets:[{data:g.map(([,a])=>a),backgroundColor:g.map((_,i)=>ECOL[i%ECOL.length]),borderColor:'#fff',borderWidth:3,hoverOffset:7}]
+    },options:{cutout:'65%',plugins:{
+      legend:{position:'bottom',labels:{boxWidth:9,boxHeight:9,color:'#52665a',font:{size:11},padding:13}},
+      tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${fmt(ctx.parsed)}`}},
+    },animation:{duration:380,easing:'easeOutCubic'}}});
+  }
+
+  function drawSavings() {
+    const months=[],labels=[];
+    for(let i=11;i>=0;i--){
+      let y=CY,m=CM-i;
+      while(m<1){m+=12;y--;} while(m>12){m-=12;y++;}
+      months.push(mk(y,m)); labels.push(`${y}-${String(m).padStart(2,'0')}`);
+    }
+    let run=0;
+    Object.keys(st.months).sort().forEach(k=>{ if(k<months[0]){const m=st.months[k];run+=sum(m.income||[])-sum(m.expense||[]);} });
+    const vals=months.map(k=>{ const m=st.months[k]; if(m) run+=sum(m.income||[])-sum(m.expense||[]); return +run.toFixed(2); });
+    const hasData=vals.some(v=>v!==0);
+    const cv=$('savingsChart'), em=$('savingsEmpty');
+    if(schart) schart.destroy();
+    if(!hasData||typeof Chart==='undefined'){ cv.style.display='none'; em.style.display='flex'; return; }
+    cv.style.display='block'; em.style.display='none';
+    const ctx=cv.getContext('2d'), grad=ctx.createLinearGradient(0,0,0,220);
+    grad.addColorStop(0,'rgba(45,122,79,.20)'); grad.addColorStop(1,'rgba(45,122,79,.01)');
+    schart=new Chart(cv,{type:'line',data:{labels,datasets:[{
+      data:vals, borderColor:'#2d7a4f', backgroundColor:grad,
+      borderWidth:2.5, pointRadius:4, pointHoverRadius:6,
+      pointBackgroundColor:'#2d7a4f', pointBorderColor:'#fff', pointBorderWidth:2,
+      tension:.4, fill:true,
+    }]},options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${fmt(ctx.parsed.y)}`}}},
+      scales:{
+        x:{ticks:{color:'#8a9e94',font:{size:11},maxRotation:45},grid:{color:'#e0ecdf'}},
+        y:{ticks:{color:'#8a9e94',callback:v=>fmt(v,true)},grid:{color:'#e0ecdf'}},
+      },animation:{duration:380,easing:'easeOutCubic'}}});
+  }
+
+  function renderAssets() {
+    const tot=sum(st.finances);
+    $('assetSummary').textContent=`${st.finances.length} 个账户 · ${fmt(tot)}`;
+    $('assetGrid').innerHTML=ATYPES.map(type=>{
+      const m=AMETA[type], items=st.finances.filter(x=>x.cat===type), sub=sum(items);
+      const rows=items.length
+        ? items.map(x=>`<div class="asset-row"><div class="row-main"><div class="row-ttl"><span>${esc(x.name)}</span></div><div class="row-meta">${fmt(x.amount)}</div></div><button class="txt-btn danger" onclick="delAsset('${x.id}')">删除</button></div>`).join('')
+        : '<div class="row-meta" style="padding:4px 0">暂无账户</div>';
+      return `<div class="asset-card" style="background:${m.bg}"><div class="at">${esc(type)}</div><div class="av" style="color:${m.c}">${fmt(sub)}</div><div class="asset-list">${rows}</div></div>`;
+    }).join('');
+  }
+
+  function renderCats() {
+    const cats=entryType==='income'?st.incCats:st.expCats;
+    $('entryCat').innerHTML=cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    $('budgetCat').innerHTML=st.expCats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  }
+
+  function setType(type) {
+    entryType=type;
+    document.querySelectorAll('.type-sw button').forEach(b=>b.classList.toggle('active',b.dataset.type===type));
+    renderCats();
+  }
+
+  function setDate() {
+    const last=new Date(CY,CM,0).getDate(), base=mk();
+    $('entryDate').min=base+'-01'; $('entryDate').max=base+'-'+String(last).padStart(2,'0');
+    if(!editing){ const t=today(); $('entryDate').value=t.startsWith(base)?t:base+'-01'; }
+  }
+
+  function renderAll() {
+    $('monthLabel').textContent=`${CY} 年 ${CM} 月`;
+    setDate(); renderCats(); renderMetrics(); renderBudget();
+    renderRecords(); renderInsights(); drawExpense(); drawSavings(); renderAssets();
+  }
+
+  /* ─── Actions ─── */
+  function startEdit(type,id) {
+    const item=cMonth()[type].find(x=>x.id===id); if(!item) return;
+    editing={type,id}; setType(type);
+    $('entryDate').value=item.date; $('entryCat').value=item.cat;
+    $('entryAmount').value=item.amount; $('entryNote').value=item.note||'';
+    $('entrySubmit').textContent='保存修改'; $('cancelEdit').style.display='inline-flex';
+    $('editState').textContent='编辑模式';
+    $('entryTitle').scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  function resetForm() {
+    editing=null; $('entryForm').reset(); setDate(); setType(entryType);
+    $('entrySubmit').textContent='添加记录'; $('cancelEdit').style.display='none';
+    $('editState').textContent='新增模式';
+  }
+  function delEntry(type,id) {
+    if(!confirm('确认删除这条流水吗？')) return;
+    const d=cMonth(); d[type]=d[type].filter(x=>x.id!==id);
+    save(); if(editing&&editing.id===id) resetForm(); renderAll();
+  }
+  function saveEntry(e) {
+    e.preventDefault();
+    const date=$('entryDate').value, cat=$('entryCat').value,
+          amt=+$('entryAmount').value, note=$('entryNote').value.trim();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!cat||!isFinite(amt)||amt<=0){ alert('请填写有效的日期、类别和金额。'); return; }
+    const k=date.slice(0,7), [y,m]=k.split('-').map(Number);
+    if(!st.months[k]) st.months[k]={income:[],expense:[]};
+    if(editing){
+      const ol=cMonth()[editing.type], oi=ol.findIndex(x=>x.id===editing.id);
+      if(oi>=0) ol.splice(oi,1);
+      st.months[k][entryType].push({id:editing.id,cat,amount:amt,note,date});
+    } else st.months[k][entryType].push({id:uid(),cat,amount:amt,note,date});
+    CY=y; CM=m; save(); resetForm(); renderAll();
+  }
+  function saveBudget() {
+    const bud=cBudget(), m=+$('monthBudget').value, cat=$('budgetCat').value, ca=+$('budgetAmount').value;
+    bud.monthly=isFinite(m)&&m>0?m:0;
+    if(cat&&isFinite(ca)&&ca>0) bud.cats[cat]=ca;
+    $('budgetAmount').value=''; save(); renderAll();
+  }
+  function clearBudget() { if(!confirm('确认清空本月预算吗？')) return; st.budgets[mk()]={monthly:0,cats:{}}; save(); renderAll(); }
+  function addAsset() {
+    const cat=$('assetType').value, name=$('assetName').value.trim(), amt=+$('assetAmount').value;
+    if(!name||!isFinite(amt)||amt<=0){ alert('请填写账户名称和有效金额。'); return; }
+    st.finances.push({id:uid(),cat,name,amount:amt});
+    $('assetName').value=''; $('assetAmount').value=''; save(); renderAll();
+  }
+  function delAsset(id) { if(!confirm('确认删除这个资产账户吗？')) return; st.finances=st.finances.filter(x=>x.id!==id); save(); renderAll(); }
+  function exportData() {
+    const blob=new Blob([JSON.stringify({version:5,exportedAt:new Date().toISOString(),data:st},null,2)],{type:'application/json'});
+    const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:`finance-${mk()}-backup.json`});
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(a.href);
+  }
+  function importData(file) {
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try {
+        const p=JSON.parse(reader.result);
+        if(!confirm('导入会覆盖当前数据，确认继续吗？')) return;
+        st=norm(p.data||p); save(); resetForm(); renderAll(); alert('导入完成。');
+      } catch { alert('文件格式不正确，请选择导出的 JSON 备份。'); }
+      finally { $('importFile').value=''; }
+    };
+    reader.readAsText(file);
+  }
+  function changeMonth(d) {
+    CM+=d; while(CM<1){CM+=12;CY--;} while(CM>12){CM-=12;CY++;}
+    resetForm(); renderAll();
+  }
+
+  /* ─── Event wiring ─── */
+  document.querySelectorAll('.type-sw button').forEach(b=>b.addEventListener('click',()=>setType(b.dataset.type)));
+  $('entryForm').addEventListener('submit',saveEntry);
+  $('cancelEdit').addEventListener('click',resetForm);
+  $('saveBudget').addEventListener('click',saveBudget);
+  $('clearBudget').addEventListener('click',clearBudget);
+  $('addAsset').addEventListener('click',addAsset);
+  $('recordTypeFilter').addEventListener('change',renderRecords);
+  $('recordSearch').addEventListener('input',renderRecords);
+  $('prevMonth').addEventListener('click',()=>changeMonth(-1));
+  $('nextMonth').addEventListener('click',()=>changeMonth(1));
+  $('exportBtn').addEventListener('click',exportData);
+  $('importBtn').addEventListener('click',()=>$('importFile').click());
+  $('importFile').addEventListener('change',e=>importData(e.target.files[0]));
+
+  /* ─── Boot ─── */
+  (async()=>{
+    if(IS_LOCAL){
+      serverOK=await pingServer();
+      if(serverOK){
+        try {
+          const d=await loadFromServer();
+          if(d&&(d.months||d.finances)){ st=norm(d); localStorage.setItem(SK,JSON.stringify(st)); }
+          else { st=loadLS(); await pushToServer(st); }
+        } catch { st=loadLS(); }
+      } else st=loadLS();
+    } else st=loadLS();
+    updateBadge(); setType('expense'); renderAll();
+  })();
+</script>
 </body>
 </html>
